@@ -11,7 +11,6 @@ class AuthenticatorBackground {
     init() {
         this.setupInstallHandler();
         this.setupMessageHandler();
-        this.setupContextMenu();
         this.setupTabUpdateHandler();
     }
 
@@ -24,8 +23,7 @@ class AuthenticatorBackground {
             
             if (details.reason === 'install') {
                 // 첫 설치 시
-                this.showWelcomeNotification();
-                this.openWelcomePage();
+                console.log('설치가 완료되었습니다! 계정을 추가하여 시작하세요.');
             } else if (details.reason === 'update') {
                 // 업데이트 시
                 console.log('Extension이 업데이트되었습니다.');
@@ -58,23 +56,6 @@ class AuthenticatorBackground {
                     console.log('알 수 없는 액션:', request.action);
             }
             return true; // 비동기 응답을 위해 true 반환
-        });
-    }
-
-    /**
-     * 컨텍스트 메뉴 설정
-     */
-    setupContextMenu() {
-        chrome.contextMenus.create({
-            id: 'openAuthenticator',
-            title: 'Google Authenticator 열기',
-            contexts: ['action']
-        });
-
-        chrome.contextMenus.onClicked.addListener((info, tab) => {
-            if (info.menuItemId === 'openAuthenticator') {
-                chrome.action.openPopup();
-            }
         });
     }
 
@@ -175,37 +156,23 @@ class AuthenticatorBackground {
      * 뱃지 설정
      */
     setBadge(text, color) {
-        chrome.action.setBadgeText({ text });
-        chrome.action.setBadgeBackgroundColor({ color });
+        try {
+            chrome.action.setBadgeText({ text });
+            chrome.action.setBadgeBackgroundColor({ color });
+        } catch (error) {
+            console.log('뱃지 설정 오류:', error);
+        }
     }
 
     /**
      * 뱃지 제거
      */
     clearBadge() {
-        chrome.action.setBadgeText({ text: '' });
-    }
-
-    /**
-     * 환영 알림 표시
-     */
-    showWelcomeNotification() {
-        chrome.notifications.create('welcome', {
-            type: 'basic',
-            iconUrl: '../icons/icon48.png',
-            title: 'Google Authenticator',
-            message: '설치가 완료되었습니다! 계정을 추가하여 시작하세요.'
-        });
-    }
-
-    /**
-     * 환영 페이지 열기
-     */
-    openWelcomePage() {
-        // 간단한 환영 페이지 대신 팝업을 열도록 안내
-        chrome.tabs.create({
-            url: 'chrome://extensions/?id=' + chrome.runtime.id
-        });
+        try {
+            chrome.action.setBadgeText({ text: '' });
+        } catch (error) {
+            console.log('뱃지 제거 오류:', error);
+        }
     }
 
     /**
