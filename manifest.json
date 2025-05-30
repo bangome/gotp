@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "Google Authenticator for Chrome",
+  "version": "1.0.0",
+  "description": "Generate OTP codes compatible with Google Authenticator",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "clipboardWrite"
+  ],
+  "host_permissions": [
+    "https://accounts.google.com/*"
+  ],
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "background": {
+    "service_worker": "background/background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://accounts.google.com/*"],
+      "js": ["content/content.js"]
+    }
+  ]
+} 
