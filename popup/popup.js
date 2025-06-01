@@ -291,10 +291,24 @@ class AuthenticatorPopup {
     async copyToClipboard(text, message = '복사되었습니다.') {
         try {
             await navigator.clipboard.writeText(text);
-            this.showToast(message);
             
             // Google 로그인 페이지에 자동 입력 시도
-            this.tryAutoFill(text);
+            const autoFillSuccess = await this.tryAutoFill(text);
+            
+            if (autoFillSuccess) {
+                // 자동 입력 성공 시 팝업 자동 닫기
+                this.showToast('코드가 자동으로 입력되었습니다.');
+                setTimeout(() => {
+                    window.close();
+                }, 1200); // 1.2초 후 팝업 닫기
+            } else {
+                // Google 페이지가 아닌 경우 복사만 완료
+                this.showToast(message);
+                // 일반적인 복사의 경우 짧은 지연 후 팝업 닫기
+                setTimeout(() => {
+                    window.close();
+                }, 800); // 0.8초 후 팝업 닫기
+            }
         } catch (error) {
             console.error('클립보드 복사 오류:', error);
             this.showToast('복사에 실패했습니다.', 'error');
@@ -309,15 +323,19 @@ class AuthenticatorPopup {
             const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
             
             if (tab.url && tab.url.includes('accounts.google.com')) {
-                await chrome.tabs.sendMessage(tab.id, {
+                const response = await chrome.tabs.sendMessage(tab.id, {
                     action: 'fillOTP',
                     code: otpCode
                 });
-                this.showToast('코드가 자동으로 입력되었습니다.');
+                
+                if (response && response.success) {
+                    return true; // 자동 입력 성공
+                }
             }
+            return false; // Google 페이지가 아니거나 자동 입력 실패
         } catch (error) {
             console.log('자동 입력 실패:', error);
-            // 자동 입력 실패는 조용히 처리
+            return false; // 자동 입력 실패
         }
     }
 
