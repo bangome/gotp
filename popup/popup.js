@@ -292,7 +292,7 @@ class AuthenticatorPopup {
         try {
             await navigator.clipboard.writeText(text);
             
-            // Google 로그인 페이지에 자동 입력 시도
+            // 모든 사이트에서 OTP 자동 입력 시도
             const autoFillSuccess = await this.tryAutoFill(text);
             
             if (autoFillSuccess) {
@@ -316,13 +316,14 @@ class AuthenticatorPopup {
     }
 
     /**
-     * Google 로그인 페이지에 자동 입력
+     * 모든 사이트에서 OTP 자동 입력 시도
      */
     async tryAutoFill(otpCode) {
         try {
             const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
             
-            if (tab.url && tab.url.includes('accounts.google.com')) {
+            // 모든 사이트에서 자동 입력 시도
+            if (tab.url && (tab.url.startsWith('http://') || tab.url.startsWith('https://'))) {
                 const response = await chrome.tabs.sendMessage(tab.id, {
                     action: 'fillOTP',
                     code: otpCode
@@ -332,7 +333,7 @@ class AuthenticatorPopup {
                     return true; // 자동 입력 성공
                 }
             }
-            return false; // Google 페이지가 아니거나 자동 입력 실패
+            return false; // 자동 입력 실패
         } catch (error) {
             console.log('자동 입력 실패:', error);
             return false; // 자동 입력 실패

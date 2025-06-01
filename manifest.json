@@ -9,7 +9,9 @@
     "clipboardWrite"
   ],
   "host_permissions": [
-    "https://accounts.google.com/*"
+    "https://accounts.google.com/*",
+    "https://*/*",
+    "http://*/*"
   ],
   "action": {
     "default_popup": "popup/popup.html",
@@ -31,8 +33,9 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://accounts.google.com/*"],
-      "js": ["content/content.js"]
+      "matches": ["<all_urls>"],
+      "js": ["content/content.js"],
+      "run_at": "document_idle"
     }
   ]
 } 

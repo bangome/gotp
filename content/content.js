@@ -68,34 +68,76 @@ class GoogleOTPAutoFiller {
      * OTP 입력 필드 찾기
      */
     findOTPField() {
-        // Google의 다양한 OTP 입력 필드 선택자들
+        // 다양한 OTP 입력 필드 선택자들
         const selectors = [
-            // 2단계 인증 코드 입력 필드
+            // Google의 OTP 입력 필드
             'input[name="totpPin"]',
             'input[name="pin"]',
             'input[type="tel"][aria-label*="code"]',
             'input[type="tel"][aria-label*="코드"]',
             'input[type="text"][aria-label*="verification"]',
             'input[type="text"][aria-label*="인증"]',
+            
+            // 사용자가 제공한 특정 필드들
+            'input[id="otpResult"]',
+            'input[id="authkey"]',
+            'input[class*="login_form_authkey"]',
+            
+            // 일반적인 OTP 필드 패턴들
+            'input[placeholder*="OTP"]',
+            'input[placeholder*="otp"]',
             'input[placeholder*="code"]',
             'input[placeholder*="코드"]',
-            'input[data-testid*="verification"]',
-            'input[data-testid*="otp"]',
-            // 일반적인 OTP 필드 패턴
+            'input[placeholder*="인증"]',
+            'input[placeholder*="verification"]',
+            'input[placeholder*="6자리"]',
+            'input[placeholder*="6 digit"]',
+            'input[name*="otp"]',
+            'input[name*="code"]',
+            'input[name*="auth"]',
+            'input[name*="verify"]',
+            'input[name*="pin"]',
+            'input[id*="otp"]',
+            'input[id*="code"]',
+            'input[id*="auth"]',
+            'input[id*="verify"]',
+            'input[id*="pin"]',
+            'input[class*="otp"]',
+            'input[class*="code"]',
+            'input[class*="auth"]',
+            'input[class*="verify"]',
+            
+            // 길이 기반 선택자
             'input[maxlength="6"][type="tel"]',
             'input[maxlength="6"][type="text"]',
+            'input[maxlength="6"][type="number"]',
             'input[inputmode="numeric"]',
-            // ID 기반 선택자
+            'input[inputmode="tel"]',
+            
+            // 일반적인 ID/Name 패턴
             '#totpPin',
             '#verificationCode',
             '#otp',
-            '#code'
+            '#code',
+            '#authCode',
+            '#twoFactorCode',
+            '#mfaCode',
+            'input[name="verificationCode"]',
+            'input[name="authCode"]',
+            'input[name="twoFactorCode"]',
+            'input[name="mfaCode"]'
         ];
 
         for (const selector of selectors) {
-            const field = document.querySelector(selector);
-            if (field && this.isValidOTPField(field)) {
-                return field;
+            try {
+                const field = document.querySelector(selector);
+                if (field && this.isValidOTPField(field)) {
+                    console.log('OTP 필드 찾음:', selector, field);
+                    return field;
+                }
+            } catch (error) {
+                // 유효하지 않은 선택자는 무시
+                continue;
             }
         }
 
@@ -388,7 +430,5 @@ class GoogleOTPAutoFiller {
     }
 }
 
-// Content Script 초기화
-if (document.location.hostname.includes('accounts.google.com')) {
-    new GoogleOTPAutoFiller();
-} 
+// Content Script 초기화 - 모든 사이트에서 작동
+new GoogleOTPAutoFiller(); 
