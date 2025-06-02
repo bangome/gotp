@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Google Authenticator for Chrome",
+  "name": "Google OTP for Chrome",
   "version": "1.0.0",
   "description": "Generate OTP codes compatible with Google Authenticator",
   "author": "Jeong Jinhwa",

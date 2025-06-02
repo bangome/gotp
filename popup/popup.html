@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Google Authenticator</title>
+    <title>Google OTP for Chrome</title>
     <link rel="stylesheet" href="popup.css">
 </head>
 <body>
@@ -11,8 +11,13 @@
         <!-- 헤더 -->
         <div class="header">
             <img src="../icons/icon32.png" alt="OTP" class="logo">
-            <h1>Google Authenticator</h1>
+            <h1>Google OTP</h1>
             <button id="addAccountBtn" class="add-btn" title="계정 추가">+</button>
+        </div>
+
+        <!-- 단축키 힌트 -->
+        <div class="shortcut-hint">
+            💡 숫자 키 1-9로 빠르게 선택하세요
         </div>
 
         <!-- 계정 목록 -->
@@ -27,6 +32,7 @@
             <!-- 계정 템플릿 -->
             <template id="accountTemplate">
                 <div class="account-item">
+                    <div class="account-number"></div>
                     <div class="account-info">
                         <div class="account-name"></div>
                         <div class="account-issuer"></div>

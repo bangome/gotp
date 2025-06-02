@@ -1,10 +1,10 @@
-# Privacy Policy for Google Authenticator Chrome Extension
+# Privacy Policy for Google OTP for Chrome
 
 **Last updated: December 2024**
 
 ## Introduction
 
-This Privacy Policy describes how the Google Authenticator Chrome Extension ("we", "our", or "us") collects, uses, and protects your information when you use our Chrome extension.
+This Privacy Policy describes how the Google OTP for Chrome Extension ("we", "our", or "us") collects, uses, and protects your information when you use our Chrome extension.
 
 ## Information We Collect
 

@@ -75,12 +75,63 @@ class AuthenticatorPopup {
             this.handleAccountSubmit();
         });
 
-        // ESC 키로 모달 닫기
+        // ESC 키로 모달 닫기 및 숫자 키 단축키
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 this.closeModal();
+            } else if (e.key >= '1' && e.key <= '9') {
+                // 모달이 열려있지 않을 때만 숫자 키 단축키 동작
+                const modal = document.getElementById('modalOverlay');
+                if (!modal.classList.contains('show')) {
+                    this.handleNumberKeyPress(parseInt(e.key));
+                }
             }
         });
+    }
+
+    /**
+     * 숫자 키 단축키 처리
+     */
+    async handleNumberKeyPress(number) {
+        // 1-9 키를 0-8 인덱스로 변환
+        const index = number - 1;
+        
+        if (index < this.accounts.length) {
+            const account = this.accounts[index];
+            
+            // 해당 계정의 OTP 코드 생성
+            const otpCode = await this.totp.generateTOTP(account.secret);
+            
+            if (otpCode) {
+                // 시각적 피드백을 위해 해당 계정 아이템을 잠시 하이라이트
+                this.highlightAccountItem(index);
+                
+                // OTP 코드 복사 및 자동입력
+                await this.copyToClipboard(otpCode, `${account.name} 코드가 복사되었습니다.`);
+            }
+        }
+    }
+
+    /**
+     * 계정 아이템 하이라이트 표시
+     */
+    highlightAccountItem(index) {
+        const accountItems = document.querySelectorAll('.account-item');
+        
+        if (accountItems[index]) {
+            const item = accountItems[index];
+            
+            // 하이라이트 클래스 추가
+            item.style.transform = 'scale(1.02)';
+            item.style.boxShadow = 'var(--shadow-hover)';
+            item.style.transition = 'all 0.2s ease';
+            
+            // 0.3초 후 원래 상태로 복원
+            setTimeout(() => {
+                item.style.transform = '';
+                item.style.boxShadow = '';
+            }, 300);
+        }
     }
 
     /**
@@ -179,20 +230,28 @@ class AuthenticatorPopup {
     async renderAccounts() {
         const container = document.getElementById('accountsContainer');
         const emptyState = document.getElementById('emptyState');
+        const shortcutHint = document.querySelector('.shortcut-hint');
         
         if (this.accounts.length === 0) {
             emptyState.style.display = 'block';
+            if (shortcutHint) {
+                shortcutHint.style.display = 'none';
+            }
             return;
         }
         
         emptyState.style.display = 'none';
+        if (shortcutHint) {
+            shortcutHint.style.display = 'block';
+        }
         
         // 기존 계정 아이템 제거 (템플릿과 empty state 제외)
         const existingItems = container.querySelectorAll('.account-item');
         existingItems.forEach(item => item.remove());
         
-        for (const account of this.accounts) {
-            const accountElement = await this.createAccountElement(account);
+        for (let i = 0; i < this.accounts.length; i++) {
+            const account = this.accounts[i];
+            const accountElement = await this.createAccountElement(account, i);
             container.appendChild(accountElement);
         }
     }
@@ -200,12 +259,21 @@ class AuthenticatorPopup {
     /**
      * 계정 요소 생성
      */
-    async createAccountElement(account) {
+    async createAccountElement(account, index) {
         const template = document.getElementById('accountTemplate');
         const clone = template.content.cloneNode(true);
         const accountItem = clone.querySelector('.account-item');
         
         accountItem.dataset.accountId = account.id;
+        
+        // 계정 번호 설정 (1부터 시작, 9까지만 표시)
+        const numberElement = clone.querySelector('.account-number');
+        if (index < 9) {
+            numberElement.textContent = (index + 1).toString();
+            numberElement.title = `단축키: ${index + 1}`;
+        } else {
+            numberElement.style.display = 'none';
+        }
         
         // 계정 정보 설정
         clone.querySelector('.account-name').textContent = account.name;

@@ -65,7 +65,7 @@ Compress-Archive -Path manifest.json,popup,content,background,lib,icons -Destina
 ## 5. 스토어 등록 정보
 
 ### 기본 정보:
-- **이름**: Google Authenticator for Chrome
+- **이름**: Google OTP for Chrome
 - **카테고리**: Productivity
 - **가격**: 무료
 - **언어**: English, Korean
