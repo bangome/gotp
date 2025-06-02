@@ -105,7 +105,7 @@ class AuthenticatorPopup {
             this.currentEditingId = null;
         }
 
-        modal.style.display = 'flex';
+        modal.classList.add('show');
         document.getElementById('accountName').focus();
     }
 
@@ -113,7 +113,8 @@ class AuthenticatorPopup {
      * 모달 닫기
      */
     closeModal() {
-        document.getElementById('modalOverlay').style.display = 'none';
+        const modal = document.getElementById('modalOverlay');
+        modal.classList.remove('show');
         document.getElementById('accountForm').reset();
         this.currentEditingId = null;
     }
