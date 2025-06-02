@@ -10,78 +10,81 @@
     <div class="container">
         <!-- 헤더 -->
         <div class="header">
-            <div class="title">
-                <img src="../icons/icon48.png" alt="Google Authenticator" class="logo">
-                <h1>Authenticator</h1>
-            </div>
+            <img src="../icons/icon32.png" alt="OTP" class="logo">
+            <h1>Google Authenticator</h1>
             <button id="addAccountBtn" class="add-btn" title="계정 추가">+</button>
         </div>
 
         <!-- 계정 목록 -->
         <div class="accounts-container" id="accountsContainer">
+            <!-- 빈 상태 -->
             <div class="empty-state" id="emptyState">
-                <p>등록된 계정이 없습니다.</p>
-                <p>계정을 추가해주세요.</p>
+                <div class="empty-icon">🔐</div>
+                <h3>계정이 없습니다</h3>
+                <p>첫 번째 OTP 계정을 추가해보세요</p>
             </div>
+
+            <!-- 계정 템플릿 -->
+            <template id="accountTemplate">
+                <div class="account-item">
+                    <div class="account-info">
+                        <div class="account-name"></div>
+                        <div class="account-issuer"></div>
+                    </div>
+                    <div class="otp-section">
+                        <div class="otp-code" title="클릭하여 복사"></div>
+                        <div class="time-info">
+                            <div class="time-bar"></div>
+                            <span class="time-remaining"></span>
+                        </div>
+                    </div>
+                    <div class="account-actions">
+                        <button class="edit-btn" title="편집">✏️</button>
+                        <button class="delete-btn" title="삭제">🗑️</button>
+                    </div>
+                </div>
+            </template>
         </div>
 
-        <!-- 계정 추가/편집 모달 -->
-        <div class="modal-overlay" id="modalOverlay" style="display: none;">
-            <div class="modal">
-                <div class="modal-header">
-                    <h2 id="modalTitle">계정 추가</h2>
-                    <button id="closeModalBtn" class="close-btn">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <form id="accountForm">
-                        <div class="form-group">
-                            <label for="accountName">계정 이름</label>
-                            <input type="text" id="accountName" placeholder="예: Google, Facebook" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="secretKey">Secret Key</label>
-                            <input type="text" id="secretKey" placeholder="Base32 인코딩된 Secret Key" required>
-                            <small>QR 코드에서 추출한 Secret Key를 입력하세요</small>
-                        </div>
-                        <div class="form-group">
-                            <label for="issuer">발급자 (선택사항)</label>
-                            <input type="text" id="issuer" placeholder="예: Google, Facebook">
-                        </div>
-                        <div class="form-actions">
-                            <button type="button" id="cancelBtn" class="btn btn-cancel">취소</button>
-                            <button type="submit" class="btn btn-primary">저장</button>
-                        </div>
-                    </form>
-                </div>
+        <!-- 제작자 정보 -->
+        <div class="footer">
+            <div class="author-info">
+                <span class="author-text">Made by <strong>Jeong Jinhwa</strong></span>
+                <span class="version">v1.0.0</span>
             </div>
         </div>
-
-        <!-- 토스트 메시지 -->
-        <div class="toast" id="toast"></div>
     </div>
 
-    <!-- 계정 아이템 템플릿 -->
-    <template id="accountTemplate">
-        <div class="account-item" data-account-id="">
-            <div class="account-header">
-                <div class="account-info">
-                    <div class="account-name"></div>
-                    <div class="account-issuer"></div>
-                </div>
-                <div class="account-actions">
-                    <button class="action-btn edit-btn" title="편집">✏️</button>
-                    <button class="action-btn delete-btn" title="삭제">🗑️</button>
-                </div>
+    <!-- 모달 -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 id="modalTitle">계정 추가</h2>
+                <button class="close-btn" id="closeModalBtn">&times;</button>
             </div>
-            <div class="otp-container">
-                <div class="otp-code" title="클릭하여 복사"></div>
-                <div class="time-progress">
-                    <div class="time-bar"></div>
-                    <div class="time-remaining"></div>
+            <form id="accountForm" class="modal-content">
+                <div class="form-group">
+                    <label for="accountName">계정 이름 *</label>
+                    <input type="text" id="accountName" required placeholder="예: john@gmail.com">
                 </div>
-            </div>
+                <div class="form-group">
+                    <label for="secretKey">Secret Key *</label>
+                    <input type="text" id="secretKey" required placeholder="Base32 인코딩된 Secret Key">
+                </div>
+                <div class="form-group">
+                    <label for="issuer">발급자 (선택사항)</label>
+                    <input type="text" id="issuer" placeholder="예: Google, GitHub">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" id="cancelBtn" class="cancel-btn">취소</button>
+                    <button type="submit" class="submit-btn">저장</button>
+                </div>
+            </form>
         </div>
-    </template>
+    </div>
+
+    <!-- 토스트 -->
+    <div id="toast" class="toast"></div>
 
     <script src="../lib/totp.js"></script>
     <script src="popup.js"></script>

@@ -402,4 +402,52 @@ body {
 
 .accounts-container::-webkit-scrollbar-thumb:hover {
     background: var(--text-secondary);
+}
+
+/* Footer - 제작자 정보 */
+.footer {
+    margin-top: 15px;
+    padding: 10px 0;
+    border-top: 1px solid var(--border-color);
+    text-align: center;
+}
+
+.author-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+.author-text {
+    font-size: 11px;
+}
+
+.author-text strong {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.version {
+    font-size: 10px;
+    color: var(--text-muted);
+    background: var(--bg-secondary);
+    padding: 2px 6px;
+    border-radius: 8px;
+    font-family: 'Courier New', monospace;
+}
+
+/* 다크 모드에서 footer 스타일 */
+body.dark-mode .footer {
+    border-top-color: #444;
+}
+
+body.dark-mode .author-text strong {
+    color: #4db6e6;
+}
+
+body.dark-mode .version {
+    background: #2a2a2a;
+    color: #888;
 } 

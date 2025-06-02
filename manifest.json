@@ -3,15 +3,14 @@
   "name": "Google Authenticator for Chrome",
   "version": "1.0.0",
   "description": "Generate OTP codes compatible with Google Authenticator",
+  "author": "Jeong Jinhwa",
   "permissions": [
     "storage",
     "activeTab",
     "clipboardWrite"
   ],
   "host_permissions": [
-    "https://accounts.google.com/*",
-    "https://*/*",
-    "http://*/*"
+    "<all_urls>"
   ],
   "action": {
     "default_popup": "popup/popup.html",

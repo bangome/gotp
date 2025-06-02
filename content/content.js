@@ -5,12 +5,18 @@
 
 class GoogleOTPAutoFiller {
     constructor() {
+        console.log('🔐 OTP AutoFiller 초기화됨:', window.location.href);
         this.init();
     }
 
     init() {
         this.setupMessageListener();
         this.observePageChanges();
+        
+        // 페이지 로드 후 즉시 OTP 필드 확인
+        setTimeout(() => {
+            this.checkForOTPField();
+        }, 1000);
     }
 
     /**
@@ -18,8 +24,11 @@ class GoogleOTPAutoFiller {
      */
     setupMessageListener() {
         chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+            console.log('📨 메시지 수신:', request);
+            
             if (request.action === 'fillOTP') {
                 const success = this.fillOTPField(request.code);
+                console.log('📝 자동 입력 결과:', success);
                 sendResponse({ success });
             }
             return true;
@@ -60,7 +69,10 @@ class GoogleOTPAutoFiller {
     checkForOTPField() {
         const otpField = this.findOTPField();
         if (otpField) {
+            console.log('✅ OTP 필드 발견:', otpField);
             this.highlightOTPField(otpField);
+        } else {
+            console.log('❌ OTP 필드를 찾을 수 없음');
         }
     }
 
@@ -68,6 +80,8 @@ class GoogleOTPAutoFiller {
      * OTP 입력 필드 찾기
      */
     findOTPField() {
+        console.log('🔍 OTP 필드 검색 시작...');
+        
         // 다양한 OTP 입력 필드 선택자들
         const selectors = [
             // Google의 OTP 입력 필드
@@ -132,7 +146,7 @@ class GoogleOTPAutoFiller {
             try {
                 const field = document.querySelector(selector);
                 if (field && this.isValidOTPField(field)) {
-                    console.log('OTP 필드 찾음:', selector, field);
+                    console.log('✅ OTP 필드 찾음:', selector, field);
                     return field;
                 }
             } catch (error) {
@@ -142,6 +156,7 @@ class GoogleOTPAutoFiller {
         }
 
         // 컨텍스트 기반 찾기
+        console.log('🔍 컨텍스트 기반으로 OTP 필드 검색...');
         return this.findOTPFieldByContext();
     }
 
@@ -152,29 +167,35 @@ class GoogleOTPAutoFiller {
         // "인증" 또는 "verification" 텍스트 근처의 입력 필드 찾기
         const contextKeywords = [
             'verification', '인증', 'code', '코드', 
-            'authenticator', '보안', 'security', 'totp'
+            'authenticator', '보안', 'security', 'totp', 'otp'
         ];
 
-        const inputs = document.querySelectorAll('input[type="tel"], input[type="text"], input[type="number"]');
+        const inputs = document.querySelectorAll('input[type="tel"], input[type="text"], input[type="number"], input:not([type])');
+        console.log(`📋 검사할 입력 필드 ${inputs.length}개 발견`);
         
         for (const input of inputs) {
             if (!this.isValidOTPField(input)) continue;
 
+            console.log('🔍 검사 중인 필드:', input);
+
             // 라벨 확인
             const label = this.findAssociatedLabel(input);
             if (label && this.containsKeywords(label.textContent, contextKeywords)) {
+                console.log('✅ 라벨로 OTP 필드 찾음:', label.textContent);
                 return input;
             }
 
             // 부모 요소의 텍스트 확인
             const parent = input.closest('div, section, form');
             if (parent && this.containsKeywords(parent.textContent, contextKeywords)) {
+                console.log('✅ 부모 요소로 OTP 필드 찾음');
                 return input;
             }
 
             // 이전/다음 형제 요소 확인
             const siblings = this.getSiblingText(input);
             if (this.containsKeywords(siblings, contextKeywords)) {
+                console.log('✅ 형제 요소로 OTP 필드 찾음');
                 return input;
             }
         }
@@ -190,7 +211,7 @@ class GoogleOTPAutoFiller {
             return false;
         }
 
-        // 길이 제한 확인 (보통 6자리)
+        // 길이 제한 확인 (보통 6자리, 하지만 더 유연하게)
         const maxLength = field.maxLength;
         if (maxLength && (maxLength < 4 || maxLength > 8)) {
             return false;
@@ -272,12 +293,16 @@ class GoogleOTPAutoFiller {
      * OTP 필드에 값 입력
      */
     fillOTPField(code) {
+        console.log('🚀 OTP 필드 자동 입력 시도:', code);
+        
         const otpField = this.findOTPField();
         
         if (!otpField) {
-            console.log('OTP 입력 필드를 찾을 수 없습니다.');
+            console.log('❌ OTP 입력 필드를 찾을 수 없습니다.');
             return false;
         }
+
+        console.log('✅ 입력할 필드 찾음:', otpField);
 
         try {
             // 기존 값 클리어
@@ -295,11 +320,11 @@ class GoogleOTPAutoFiller {
             // 시각적 피드백
             this.showSuccessIndicator(otpField);
             
-            console.log('OTP 코드가 자동으로 입력되었습니다:', code);
+            console.log('✅ OTP 코드가 자동으로 입력되었습니다:', code);
             return true;
             
         } catch (error) {
-            console.error('OTP 입력 중 오류 발생:', error);
+            console.error('❌ OTP 입력 중 오류 발생:', error);
             return false;
         }
     }
@@ -308,6 +333,8 @@ class GoogleOTPAutoFiller {
      * 필드에 이벤트 발생
      */
     triggerEvents(field, value) {
+        console.log('🎯 이벤트 발생 중...');
+        
         // Input 이벤트
         const inputEvent = new Event('input', { bubbles: true });
         field.dispatchEvent(inputEvent);
@@ -315,6 +342,10 @@ class GoogleOTPAutoFiller {
         // Change 이벤트
         const changeEvent = new Event('change', { bubbles: true });
         field.dispatchEvent(changeEvent);
+        
+        // Blur 이벤트 (일부 사이트에서 필요)
+        const blurEvent = new Event('blur', { bubbles: true });
+        field.dispatchEvent(blurEvent);
         
         // KeyDown/KeyUp 이벤트 (각 문자에 대해)
         for (let i = 0; i < value.length; i++) {
@@ -328,6 +359,13 @@ class GoogleOTPAutoFiller {
             });
             field.dispatchEvent(keyDownEvent);
             
+            const keyPressEvent = new KeyboardEvent('keypress', {
+                key: char,
+                keyCode: keyCode,
+                bubbles: true
+            });
+            field.dispatchEvent(keyPressEvent);
+            
             const keyUpEvent = new KeyboardEvent('keyup', {
                 key: char,
                 keyCode: keyCode,
@@ -337,12 +375,24 @@ class GoogleOTPAutoFiller {
         }
         
         // React/Vue 등 프레임워크를 위한 추가 이벤트
-        const reactEvents = ['onInput', 'onChange'];
+        const reactEvents = ['onInput', 'onChange', 'onBlur'];
         reactEvents.forEach(eventName => {
             if (field[eventName]) {
-                field[eventName]({ target: field });
+                try {
+                    field[eventName]({ target: field });
+                } catch (e) {
+                    console.log('React 이벤트 실행 실패:', eventName);
+                }
             }
         });
+        
+        // 커스텀 이벤트들
+        try {
+            field.dispatchEvent(new CustomEvent('otp-filled', { detail: value }));
+            field.dispatchEvent(new CustomEvent('value-changed', { detail: value }));
+        } catch (e) {
+            console.log('커스텀 이벤트 실행 실패');
+        }
     }
 
     /**
