@@ -281,6 +281,16 @@ body {
     font-weight: 500;
 }
 
+/* 계정 액션 */
+.account-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    justify-content: flex-start;
+    margin-top: 0;
+    flex-shrink: 0;
+}
+
 .edit-btn,
 .delete-btn {
     background: none;
