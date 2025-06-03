@@ -32,10 +32,16 @@
             <!-- 계정 템플릿 -->
             <template id="accountTemplate">
                 <div class="account-item">
-                    <div class="account-number"></div>
-                    <div class="account-info">
-                        <div class="account-name"></div>
-                        <div class="account-issuer"></div>
+                    <div class="account-header">
+                        <div class="account-number"></div>
+                        <div class="account-info">
+                            <div class="account-name"></div>
+                            <div class="account-issuer"></div>
+                        </div>
+                        <div class="account-actions">
+                            <button class="edit-btn" title="편집">✏️</button>
+                            <button class="delete-btn" title="삭제">🗑️</button>
+                        </div>
                     </div>
                     <div class="otp-section">
                         <div class="otp-code" title="클릭하여 복사"></div>
@@ -43,10 +49,6 @@
                             <div class="time-bar"></div>
                             <span class="time-remaining"></span>
                         </div>
-                    </div>
-                    <div class="account-actions">
-                        <button class="edit-btn" title="편집">✏️</button>
-                        <button class="delete-btn" title="삭제">🗑️</button>
                     </div>
                 </div>
             </template>
