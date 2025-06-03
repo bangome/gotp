@@ -1,5 +1,5 @@
 /**
- * Google Authenticator Chrome Extension - Popup Script
+ * G-OTP Chrome Extension - Popup Script
  */
 
 class AuthenticatorPopup {

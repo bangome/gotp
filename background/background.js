@@ -1,5 +1,5 @@
 /**
- * Google Authenticator Chrome Extension - Background Script
+ * G-OTP Chrome Extension - Background Script
  * Service Worker for Manifest V3
  */
 
@@ -19,7 +19,7 @@ class AuthenticatorBackground {
      */
     setupInstallHandler() {
         chrome.runtime.onInstalled.addListener((details) => {
-            console.log('Google Authenticator Extension이 설치되었습니다.');
+            console.log('G-OTP Extension이 설치되었습니다.');
             
             if (details.reason === 'install') {
                 // 첫 설치 시

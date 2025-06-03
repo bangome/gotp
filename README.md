@@ -1,4 +1,4 @@
-# Google OTP for Chrome
+# G-OTP for Chrome
 
 Chrome에서 사용할 수 있는 Google Authenticator 호환 OTP(One-Time Password) 생성기 확장 프로그램입니다.
 

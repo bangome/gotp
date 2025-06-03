@@ -1,5 +1,5 @@
 /**
- * Google Authenticator Chrome Extension - Content Script
+ * G-OTP Chrome Extension - Content Script
  * Google 로그인 페이지에서 OTP 자동 입력 기능 제공
  */
 

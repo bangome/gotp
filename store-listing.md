@@ -1,14 +1,14 @@
 # Chrome Web Store Listing Information
 
 ## Name
-Google OTP for Chrome
+G-OTP for Chrome
 
 ## Summary (132 characters max)
 Generate TOTP codes compatible with Google Authenticator. Auto-fill OTP codes on login pages.
 
 ## Description
 
-**Google OTP for Chrome - Generate OTP codes directly in your browser!**
+**G-OTP for Chrome - Generate OTP codes directly in your browser!**
 
 This Chrome extension provides a convenient way to generate Time-based One-Time Password (TOTP) codes compatible with Google Authenticator, right from your browser.
 
