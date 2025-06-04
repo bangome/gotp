@@ -1,0 +1,289 @@
+# Chrome Extension Development Rules
+
+## 기본 원칙
+- 항상 Manifest V3를 사용합니다
+- 보안을 최우선으로 고려합니다
+- 사용자 프라이버시를 보호합니다
+- 최소 권한 원칙을 따릅니다
+- 성능 최적화를 고려합니다
+- 한국어와 영어를 모두 지원합니다
+
+## 프로젝트 구조
+```
+extension-name/
+├── manifest.json                 # 확장 프로그램 메타데이터
+├── popup/                        # 팝업 인터페이스
+│   ├── popup.html
+│   ├── popup.css
+│   └── popup.js
+├── content/                      # 웹페이지 스크립트
+│   └── content.js
+├── background/                   # 백그라운드 서비스 워커
+│   └── background.js
+├── lib/                         # 라이브러리 파일들
+│   └── *.js
+├── icons/                       # 아이콘 파일들
+│   ├── icon16.png
+│   ├── icon32.png
+│   ├── icon48.png
+│   └── icon128.png
+├── _locales/                    # 다국어 지원 (선택사항)
+│   ├── en/
+│   └── ko/
+├── README.md
+├── privacy-policy.md
+└── store-listing.md
+```
+
+## 파일 네이밍 규칙
+- 모든 파일명은 kebab-case 사용 (예: popup-script.js)
+- 아이콘은 크기를 명시 (예: icon16.png, icon32.png)
+- 라이브러리는 기능을 명확히 (예: crypto-utils.js, api-client.js)
+
+## Manifest V3 가이드라인
+
+### 필수 필드
+```json
+{
+  "manifest_version": 3,
+  "name": "Extension Name",
+  "version": "1.0.0",
+  "description": "Clear description under 132 characters",
+  "author": "Developer Name"
+}
+```
+
+### 권한 관리
+- storage: 데이터 저장 시 필수
+- activeTab: 현재 탭 접근 시 사용
+- host_permissions: 특정 도메인 접근 시 사용
+- 불필요한 권한은 절대 요청하지 않습니다
+
+### Service Worker (Background Script)
+- chrome.runtime.onInstalled 리스너 구현
+- 메시지 전달 시스템 구현
+- 에러 핸들링 필수
+
+## 코딩 스타일
+
+### JavaScript
+- ES6+ 문법 사용
+- 클래스 기반 구조 선호
+- async/await 사용 (Promise.then 대신)
+- 명확한 함수/변수명 사용
+- JSDoc 주석 작성
+
+### CSS
+- CSS 변수 활용
+- 다크 모드 지원 (`prefers-color-scheme`)
+- Flexbox/Grid 레이아웃 사용
+- 반응형 디자인 고려
+
+### HTML
+- 시맨틱 HTML 사용
+- 접근성 고려 (aria-* 속성)
+- 한국어 lang 속성 설정
+
+## 보안 가이드라인
+
+### Content Security Policy
+- 인라인 스크립트 금지
+- eval() 사용 금지
+- 외부 리소스 로딩 최소화
+
+### 데이터 보호
+- 민감한 데이터는 chrome.storage.sync 암호화 사용
+- 로컬 스토리지 대신 Chrome Storage API 사용
+- Secret key 등은 절대 하드코딩 금지
+
+### 입력 검증
+- 모든 사용자 입력 검증
+- XSS 공격 방지
+- 정규식을 통한 입력 패턴 검증
+
+## UI/UX 가이드라인
+
+### 팝업 디자인
+- 최대 너비: 400px, 최대 높이: 600px
+- 빠른 로딩 시간 (1초 이내)
+- 직관적인 네비게이션
+- 로딩 상태 표시
+
+### 사용자 피드백
+- 작업 완료 시 토스트 메시지
+- 에러 발생 시 명확한 오류 메시지
+- 시각적 피드백 (애니메이션, 색상 변화)
+
+### 접근성
+- 키보드 네비게이션 지원
+- 높은 명도 대비
+- 스크린 리더 지원
+
+## 기능 구현 패턴
+
+### 메시지 전달
+```javascript
+// Background에서 Content Script로
+chrome.tabs.sendMessage(tabId, {action: 'doSomething', data: value});
+
+// Content Script에서 Background로
+chrome.runtime.sendMessage({action: 'getData', params: params});
+```
+
+### 스토리지 사용
+```javascript
+// 저장
+await chrome.storage.sync.set({key: value});
+
+// 읽기
+const result = await chrome.storage.sync.get(['key']);
+```
+
+### DOM 조작 (Content Script)
+- MutationObserver 사용으로 동적 변화 감지
+- 기존 페이지 스타일 최소 영향
+- 이벤트 리스너 정리 필수
+
+## 성능 최적화
+
+### 리소스 관리
+- 이미지 최적화 (WebP 형식 선호)
+- 불필요한 라이브러리 제거
+- 코드 압축 및 번들링
+
+### 메모리 관리
+- 이벤트 리스너 해제
+- 타이머 정리
+- 큰 데이터 처리 시 청크 단위 처리
+
+## 테스트 및 디버깅
+
+### 개발 중 테스트
+- chrome://extensions/ 개발자 모드 활용
+- 콘솔 로그 적극 활용
+- 에러 경계 설정
+
+### 배포 전 체크리스트
+- 모든 권한 필요성 재검토
+- 다양한 웹사이트에서 테스트
+- 메모리 누수 검사
+- 성능 프로파일링
+
+## 다국어 지원
+
+### 기본 설정
+- 한국어와 영어 기본 지원
+- chrome.i18n API 활용
+- 문자열 외부화
+
+### 메시지 파일 구조
+```json
+{
+  "appName": {
+    "message": "앱 이름"
+  },
+  "appDescription": {
+    "message": "앱 설명"
+  }
+}
+```
+
+## 스토어 배포 준비
+
+### 필수 파일
+- 스크린샷 (1280x800px, 최대 5개)
+- 아이콘 (16, 32, 48, 128px)
+- 상세 설명 (영어/한국어)
+- 개인정보 보호정책
+
+### 스토어 최적화
+- 키워드 최적화
+- 카테고리 정확히 선택
+- 업데이트 주기 계획
+
+## 에러 처리
+
+### 공통 에러 패턴
+- 네트워크 연결 실패
+- 권한 부족
+- 스토리지 제한 초과
+- 잘못된 사용자 입력
+
+### 에러 로깅
+```javascript
+try {
+  // 작업 수행
+} catch (error) {
+  console.error('작업명 실패:', error);
+  // 사용자에게 친화적인 메시지 표시
+}
+```
+
+## 보안 검토 체크리스트
+- [ ] CSP 정책 적용
+- [ ] 외부 스크립트 로딩 검토
+- [ ] 사용자 입력 검증
+- [ ] 권한 최소화
+- [ ] 민감한 데이터 암호화
+- [ ] HTTPS 통신만 사용
+
+## 성능 검토 체크리스트
+- [ ] 메모리 사용량 모니터링
+- [ ] 로딩 시간 최적화
+- [ ] 불필요한 API 호출 제거
+- [ ] 이미지 최적화
+- [ ] 코드 압축
+
+## 사용자 경험 검토 체크리스트
+- [ ] 직관적인 UI
+- [ ] 빠른 응답 시간
+- [ ] 명확한 피드백
+- [ ] 에러 상황 대응
+- [ ] 키보드 접근성
+- [ ] 다크 모드 지원
+
+## 코드 예시
+
+### 기본 클래스 구조
+```javascript
+class ExtensionComponent {
+    constructor() {
+        this.init();
+    }
+
+    async init() {
+        await this.loadSettings();
+        this.setupEventListeners();
+        this.render();
+    }
+
+    async loadSettings() {
+        // 설정 로드
+    }
+
+    setupEventListeners() {
+        // 이벤트 리스너 설정
+    }
+
+    render() {
+        // UI 렌더링
+    }
+}
+```
+
+### 메시지 전달 패턴
+```javascript
+// 백그라운드 스크립트
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    switch (request.action) {
+        case 'getData':
+            handleGetData(request.params, sendResponse);
+            break;
+        default:
+            console.warn('Unknown action:', request.action);
+    }
+    return true; // 비동기 응답
+});
+```
+
+이 규칙들을 따르면 안전하고 성능이 좋은 Chrome Extension을 개발할 수 있습니다. 
