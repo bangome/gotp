@@ -8,6 +8,8 @@ class AuthenticatorPopup {
         this.accounts = [];
         this.currentEditingId = null;
         this.updateInterval = null;
+        this.lastUpdateWindow = null;
+        this.lastProgressSecond = null;
         
         this.init();
     }
@@ -53,20 +55,13 @@ class AuthenticatorPopup {
             this.openModal();
         });
 
-        // 모달 닫기
-        document.getElementById('closeModalBtn').addEventListener('click', () => {
+        // 모달 닫기 버튼들
+        document.getElementById('closeModal').addEventListener('click', () => {
             this.closeModal();
         });
 
         document.getElementById('cancelBtn').addEventListener('click', () => {
             this.closeModal();
-        });
-
-        // 모달 오버레이 클릭으로 닫기
-        document.getElementById('modalOverlay').addEventListener('click', (e) => {
-            if (e.target.id === 'modalOverlay') {
-                this.closeModal();
-            }
         });
 
         // 계정 폼 제출
@@ -75,17 +70,38 @@ class AuthenticatorPopup {
             this.handleAccountSubmit();
         });
 
-        // ESC 키로 모달 닫기 및 숫자 키 단축키
+        // 키보드 단축키
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                this.closeModal();
-            } else if (e.key >= '1' && e.key <= '9') {
-                // 모달이 열려있지 않을 때만 숫자 키 단축키 동작
-                const modal = document.getElementById('modalOverlay');
-                if (!modal.classList.contains('show')) {
-                    this.handleNumberKeyPress(parseInt(e.key));
-                }
+            // 모달이 열려있을 때는 단축키 비활성화
+            if (document.getElementById('accountModal').style.display === 'block') {
+                return;
             }
+
+            // 숫자 키 (1-9)
+            if (e.key >= '1' && e.key <= '9') {
+                const number = parseInt(e.key);
+                this.handleNumberKeyPress(number);
+            }
+
+            // ESC 키로 팝업 닫기
+            if (e.key === 'Escape') {
+                window.close();
+            }
+        });
+
+        // 페이지 언로드 시 정리 작업
+        window.addEventListener('beforeunload', () => {
+            this.stopPeriodicUpdate();
+        });
+
+        // 팝업 focus/blur 이벤트 처리
+        window.addEventListener('focus', () => {
+            this.startPeriodicUpdate();
+        });
+
+        window.addEventListener('blur', () => {
+            // 팝업이 포커스를 잃으면 업데이트 빈도 줄이기
+            this.stopPeriodicUpdate();
         });
     }
 
@@ -322,7 +338,7 @@ class AuthenticatorPopup {
     }
 
     /**
-     * 시간 진행 바 업데이트
+     * 시간 진행 바 업데이트 - 최적화됨
      */
     updateTimeProgress(element) {
         const timeBar = element.querySelector('.time-bar');
@@ -331,15 +347,19 @@ class AuthenticatorPopup {
         const remaining = this.totp.getTimeRemaining();
         const ratio = this.totp.getTimeRemainingRatio();
         
-        timeBar.style.setProperty('--progress', `${ratio * 100}%`);
-        timeRemaining.textContent = `${remaining}s`;
-        
-        // CSS로 진행 바 애니메이션
-        timeBar.style.background = `linear-gradient(to right, 
-            var(--success-color) 0%, 
-            var(--success-color) ${ratio * 100}%, 
-            var(--border-color) ${ratio * 100}%, 
-            var(--border-color) 100%)`;
+        // 남은 시간이 변경된 경우에만 업데이트
+        const currentRemaining = timeRemaining.textContent;
+        if (currentRemaining !== `${remaining}s`) {
+            timeBar.style.setProperty('--progress', `${ratio * 100}%`);
+            timeRemaining.textContent = `${remaining}s`;
+            
+            // CSS로 진행 바 애니메이션
+            timeBar.style.background = `linear-gradient(to right, 
+                var(--success-color) 0%, 
+                var(--success-color) ${ratio * 100}%, 
+                var(--border-color) ${ratio * 100}%, 
+                var(--border-color) 100%)`;
+        }
     }
 
     /**
@@ -424,19 +444,55 @@ class AuthenticatorPopup {
     }
 
     /**
-     * 주기적 업데이트 시작
+     * 주기적 업데이트 시작 - 성능 최적화됨
      */
     startPeriodicUpdate() {
-        this.updateInterval = setInterval(async () => {
-            await this.updateAllOTPCodes();
+        // 시간 진행 바는 더 자주 업데이트 (사용자 경험을 위해)
+        this.progressInterval = setInterval(() => {
             this.updateAllTimeProgress();
         }, 1000);
+
+        // OTP 코드는 필요할 때만 업데이트 (30초마다)
+        this.otpInterval = setInterval(async () => {
+            await this.updateAllOTPCodes();
+        }, 1000); // 1초마다 체크하지만 실제 업데이트는 30초 윈도우 기준
+
+        console.log('🔄 주기적 업데이트 시작 - 최적화됨');
     }
 
     /**
-     * 모든 OTP 코드 업데이트
+     * 업데이트 정리
+     */
+    stopPeriodicUpdate() {
+        if (this.progressInterval) {
+            clearInterval(this.progressInterval);
+            this.progressInterval = null;
+        }
+        if (this.otpInterval) {
+            clearInterval(this.otpInterval);
+            this.otpInterval = null;
+        }
+        // 기존 통합 인터벌도 정리
+        if (this.updateInterval) {
+            clearInterval(this.updateInterval);
+            this.updateInterval = null;
+        }
+        console.log('🛑 주기적 업데이트 정지');
+    }
+
+    /**
+     * 모든 OTP 코드 업데이트 - 최적화됨
      */
     async updateAllOTPCodes() {
+        const now = Math.floor(Date.now() / 1000);
+        const timeWindow = Math.floor(now / 30); // 30초 윈도우
+        
+        // 이전 업데이트와 같은 시간 윈도우라면 스킵
+        if (this.lastUpdateWindow === timeWindow) {
+            return;
+        }
+        this.lastUpdateWindow = timeWindow;
+
         const accountItems = document.querySelectorAll('.account-item');
         
         for (const item of accountItems) {
@@ -448,16 +504,27 @@ class AuthenticatorPopup {
                 const otpElement = item.querySelector('.otp-code');
                 
                 if (otpElement && otpCode) {
-                    otpElement.textContent = otpCode;
+                    // 코드가 실제로 변경된 경우에만 업데이트
+                    if (otpElement.textContent !== otpCode) {
+                        otpElement.textContent = otpCode;
+                        console.log(`🔄 OTP 코드 업데이트: ${account.name}`);
+                    }
                 }
             }
         }
     }
 
     /**
-     * 모든 시간 진행 바 업데이트
+     * 모든 시간 진행 바 업데이트 - 최적화됨
      */
     updateAllTimeProgress() {
+        // 시간이 실제로 변경된 경우에만 전체 업데이트
+        const currentSecond = Math.floor(Date.now() / 1000) % 30;
+        if (this.lastProgressSecond === currentSecond) {
+            return;
+        }
+        this.lastProgressSecond = currentSecond;
+
         const accountItems = document.querySelectorAll('.account-item');
         
         accountItems.forEach(item => {

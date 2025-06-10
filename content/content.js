@@ -6,6 +6,9 @@
 class GoogleOTPAutoFiller {
     constructor() {
         console.log('🔐 OTP AutoFiller 초기화됨:', window.location.href);
+        this.lastOTPFieldCheck = 0;
+        this.checkOTPFieldDebounced = this.debounce(this.checkForOTPField.bind(this), 500);
+        this.foundOTPField = null; // 이미 찾은 필드 캐시
         this.init();
     }
 
@@ -17,6 +20,21 @@ class GoogleOTPAutoFiller {
         setTimeout(() => {
             this.checkForOTPField();
         }, 1000);
+    }
+
+    /**
+     * 디바운스 함수
+     */
+    debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
     }
 
     /**
@@ -36,7 +54,7 @@ class GoogleOTPAutoFiller {
     }
 
     /**
-     * 페이지 변화 감지 (SPA 대응)
+     * 페이지 변화 감지 (SPA 대응) - 최적화됨
      */
     observePageChanges() {
         // 페이지 로드 완료 후 초기 검사
@@ -48,13 +66,30 @@ class GoogleOTPAutoFiller {
             this.checkForOTPField();
         }
 
-        // DOM 변화 감지
+        // DOM 변화 감지 - 디바운스 적용
         const observer = new MutationObserver((mutations) => {
+            // 이미 OTP 필드를 찾았고, 여전히 존재하는 경우 체크하지 않음
+            if (this.foundOTPField && document.contains(this.foundOTPField)) {
+                return;
+            }
+
+            // 입력 필드 관련 변화만 체크
+            let hasInputChange = false;
             mutations.forEach((mutation) => {
                 if (mutation.type === 'childList') {
-                    this.checkForOTPField();
+                    mutation.addedNodes.forEach(node => {
+                        if (node.nodeType === Node.ELEMENT_NODE) {
+                            if (node.tagName === 'INPUT' || node.querySelector('input')) {
+                                hasInputChange = true;
+                            }
+                        }
+                    });
                 }
             });
+
+            if (hasInputChange) {
+                this.checkOTPFieldDebounced();
+            }
         });
 
         observer.observe(document.body, {
@@ -64,15 +99,29 @@ class GoogleOTPAutoFiller {
     }
 
     /**
-     * OTP 입력 필드 존재 확인
+     * OTP 입력 필드 존재 확인 - 최적화됨
      */
     checkForOTPField() {
+        // 중복 호출 방지 (500ms 내 재호출 방지)
+        const now = Date.now();
+        if (now - this.lastOTPFieldCheck < 500) {
+            return;
+        }
+        this.lastOTPFieldCheck = now;
+
+        // 이미 찾은 필드가 있고 여전히 존재하는 경우
+        if (this.foundOTPField && document.contains(this.foundOTPField)) {
+            return;
+        }
+
         const otpField = this.findOTPField();
         if (otpField) {
             console.log('✅ OTP 필드 발견:', otpField);
+            this.foundOTPField = otpField; // 캐시에 저장
             this.highlightOTPField(otpField);
         } else {
             console.log('❌ OTP 필드를 찾을 수 없음');
+            this.foundOTPField = null;
         }
     }
 
@@ -290,12 +339,16 @@ class GoogleOTPAutoFiller {
     }
 
     /**
-     * OTP 필드에 값 입력
+     * OTP 필드에 값 입력 - 최적화됨
      */
     fillOTPField(code) {
         console.log('🚀 OTP 필드 자동 입력 시도:', code);
         
-        const otpField = this.findOTPField();
+        // 캐시된 필드가 있고 여전히 유효한 경우 사용
+        let otpField = this.foundOTPField;
+        if (!otpField || !document.contains(otpField)) {
+            otpField = this.findOTPField();
+        }
         
         if (!otpField) {
             console.log('❌ OTP 입력 필드를 찾을 수 없습니다.');

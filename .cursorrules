@@ -267,7 +267,7 @@ class ExtensionComponent {
 
     render() {
         // UI 렌더링
-    }
+    
 }
 ```
 
